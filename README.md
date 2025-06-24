@@ -1,4 +1,4 @@
-## From eigenvector nonlinearities to eigenvector nonlinearities
+## From eigenvector nonlinearities to eigenvalue nonlinearities
 
 Code supporting the numerical experiments and illustrative examples in the article *From eigenvector nonlinearities to eigenvector nonlinearities* (https://arxiv.org/abs/2506.16182). 
 
