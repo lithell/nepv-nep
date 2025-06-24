@@ -78,7 +78,7 @@ h = 2/(n+1); # (-1,1)×(-1,1)
 xvec = (-1+h):h:(1-h);
 
 potential = :harmonic_lattice
-c_vec = [45, 45, 45, 45, 45]
+c_vec = [45, 45, 45, 45, 45] # size of these determines m
 sigma_vec = [6, 6, 6, 6, 6]
 center_vec =[
     [0.4,-0.6],
@@ -233,9 +233,12 @@ for (prob_no,λ0) in enumerate(λ_init_vec)
     end
 end
 
-# save data to csv-file
-
+# plot and save data to csv-file
 num_exp_conv_hist = hcat(1:size(nep_conv_hist,1), nep_conv_hist, nepv_conv_hist)
+
+p1 = plot(num_exp_conv_hist[:,1], num_exp_conv_hist[:,2:3], yscale=:log10, label=["NEP" "NEPv"])
+ylabel!("Relative residual norm")
+xlabel!("Total number fo iterations")
 
 # save sonvergence history to file
 writedlm("data/num_exp_new_conv_hist.csv", num_exp_conv_hist, ',')
@@ -243,11 +246,16 @@ writedlm("data/num_exp_new_conv_hist.csv", num_exp_conv_hist, ',')
 # save timings to file
 writedlm("data/timings_new.csv", timings, ',')
 
-# pad with zeros
+# pad modes with zeros
 padded_vecs = zeros((n+2)^2,size(λ_init_vec,1))
 for k in 1:size(λ_init_vec,1)
     padded_vecs[:,k] = pad_matrix(reshape(eigvecs[:,k], n, n))[:]
 end
+
+# basic plots of modes
+cent = mapreduce(x-> reshape(x, 1,2), vcat, center_vec)
+modep = [(contour([-1;xvec;1],[-1;xvec;1],reshape(padded_vecs[:,k],n+2,n+2), xlims=(-1,1), ylims=(-1,1), aspect_ratio=:equal, colorbar=:none); scatter!(cent[:,1], cent[:,2], markercolor=:black, label=:none, title="λ$(k)")) for k in 1:size(λ_init_vec,1)]
+p2 = plot(modep...)
 
 # pgfplots need one point per row
 xvp = [-1; xvec; 1]
@@ -260,6 +268,8 @@ writedlm("data/num_exp_new_mode.csv", mode_data, ',')
 # save eigenvalue data to csv file
 writedlm("data/num_exp_new_eigs.csv", eigvals, ',')
 
+@show p1
+@show p2
 
 #=
 # visualize the curves
@@ -268,10 +278,12 @@ data=sample_curves(nepv, samples);
 
 data = mapreduce(x-> reshape(x, 1,6), vcat, data)
 
-# since we dont do a selection, tmp contains many "almost equal" elements (rounding errors), remove these
+# since we dont do a selection, data contains many "almost equal" elements (rounding errors), remove these
 data = unique(round.(tmp, digits=10), dims=1)
 
-p = scatter(data[:,1], data[:,2:end], markerstrokewidth=0, markersize=1, label=["μ1" "μ2" "μ3" "μ4" "μ5"])
+# this assumes single-valued data
+p3 = plot(data[:,1], data[:,2:end], markerstrokewidth=0, markersize=1, label=["μ1" "μ2" "μ3" "μ4" "μ5"])
+@show p3
 
 # save curve data to csv file
 writedlm("data/num_exp_new_curves.csv", data, ',')
